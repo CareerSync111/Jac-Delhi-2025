@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAC Delhi Predictor 2025</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    #downloadBtn {
+      background-color: #4CAF50;
+      color: white;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>JAC Delhi Predictor 2025</h1>
+    <form id="predictorForm">
+      <label>User Name:</label>
+      <input type="text" id="name" required>
+      <label>CRL Rank:</label>
+      <input type="number" id="rank" required>
+      <label>Category:</label>
+      <input type="text" id="category" required>
+      <label>Gender:</label>
+      <select id="gender">
+        <option value="Gender-Neutral">Gender-Neutral</option>
+        <option value="Female-only">Female-only</option>
+      </select>
+      <label>Region:</label>
+      <select id="region">
+        <option value="Delhi">Delhi</option>
+        <option value="Outside Delhi">Outside Delhi</option>
+      </select>
+      <button type="submit">Predict</button>
+    </form>
+
+    <div id="resultsSection" style="display:none">
+      <h2 id="greeting"></h2>
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th>Institute</th><th>Branch</th><th>Total Fees</th><th>Hostel Fees</th>
+            <th>Avg. Yearly</th><th>Avg Package</th><th>Highest</th><th>Closing Rank</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="downloadBtn">Download as PDF</button>
+    </div>
+  </div>
+
+  <script>
+    let dataset = [];
+
+    async function loadDataset() {
+      const response = await fetch("Merged_JAC_Cutoffs_Placement.json");
+      dataset = await response.json();
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadDataset();
+
+      document.getElementById("predictorForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value;
+        const rank = parseInt(document.getElementById("rank").value);
+        const category = document.getElementById("category").value.toUpperCase();
+        const gender = document.getElementById("gender").value;
+        const region = document.getElementById("region").value;
+
+        const results = dataset.filter(d =>
+          parseInt(d["Closing Rank"]) >= rank &&
+          d["Category"].toUpperCase() === category &&
+          d["Gender"].toLowerCase() === gender.toLowerCase() &&
+          d["Region"].toLowerCase() === region.toLowerCase()
+        );
+
+        const tableBody = document.querySelector("#resultsTable tbody");
+        tableBody.innerHTML = "";
+
+        results.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row["Institute name"]}</td>
+            <td>${row["Branch"]}</td>
+            <td>${row["Total B.Tech Fees (4 Years)"]}</td>
+            <td>${row["Hostel Fees (per year)"]}</td>
+            <td>${row["Avg. Yearly Fees"]}</td>
+            <td>${row["Average Package"]}</td>
+            <td>${row["Highest Package"]}</td>
+            <td>${row["Closing Rank"]}</td>
+          `;
+          tableBody.appendChild(tr);
+        });
+
+        document.getElementById("greeting").textContent = `Hi ${name}, here are your predicted colleges:`;
+        document.getElementById("resultsSection").style.display = "block";
+      });
+
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        window.print();
+      });
+    });
+  </script>
+</body>
+</html>
